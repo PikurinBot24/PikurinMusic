@@ -1,0 +1,8 @@
+discord.py
+uvicorn
+flask
+pytube
+PyNaCl
+ffmpeg-python
+google-api-python-client
+google-auth
