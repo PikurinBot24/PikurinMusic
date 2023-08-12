@@ -56,6 +56,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         super().__init__(source, volume)
 
         self.data = data
+        self.seconds = data.get('duration')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=True):
