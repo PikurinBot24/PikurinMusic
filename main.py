@@ -226,7 +226,7 @@ async def play_music(channel, guild, botlog):
     try:
         player = await YTDLSource.from_url(musicdefaulturl, loop=client.loop)
         seconds = player.seconds
-        audiotoplay = YTDLSource(player, data=player.data, volume=volume)
+        audiotoplay = YTDLSource(player, data=player.data, volume=1.0)
         guild.voice_client.play(audiotoplay)
     except Exception as e:
         print(e)
@@ -244,7 +244,7 @@ async def play_music(channel, guild, botlog):
                 await asyncio.sleep(3)
             try:
                 player = await YTDLSource.from_url(musicdefaulturl, loop=client.loop)
-                audiotoplay = YTDLSource(player, data=player.data, volume=volume)
+                audiotoplay = YTDLSource(player, data=player.data, volume=1.0)
                 guild.voice_client.play(audiotoplay)
             except Exception as e:
                 print(e)
