@@ -28,10 +28,29 @@ client = discord.Client(intents=intents)
 youtubedataapi = build('youtube', 'v3', developerKey='AIzaSyCIiSbM5QWgxJC4KqKCcR3_jPc0ISIObng')
 log = logging.getLogger(__name__)
 
+ytdl_format_options = {
+    'format': 'm4a/bestaudio/best',
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'm4a',
+        'preferredquality': '192',
+    }],
+    'restrictfilenames': True,
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'logtostderr': False,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'ytsearch',
+    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+}
 ffmpeg_options = {
     'before_options':
-    '-vn -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 600'
+    '-vn -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 20'
 }
+yt_dlp.utils.bug_reports_message = lambda: ''
+ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 
 
 
@@ -160,7 +179,6 @@ class OriginalFFmpegPCMAudio(discord.FFmpegPCMAudio):
 
 
 
-
 @client.event
 async def on_ready():
     print('ログインしました')
@@ -188,10 +206,10 @@ async def play_music(channel, guild, botlog):
     await guild.change_voice_state(channel=guild.voice_client.channel, self_deaf=True)
 
     try:
-        yt = YouTube(musicdefaulturl)
-        seconds=yt.length
-        audio_url = yt.streams.filter(only_audio=True).first().url
-        guild.voice_client.play(OriginalFFmpegPCMAudio(audio_url, **ffmpeg_options))
+        player = await YTDLSource.from_url(musicdefaulturl, loop=client.loop)
+        seconds = player.seconds
+        audiotoplay = YTDLSource(player, data=player.data, volume=volume)
+        guild.voice_client.play(audiotoplay)
     except Exception as e:
         print(e)
         try:
@@ -207,9 +225,9 @@ async def play_music(channel, guild, botlog):
             while guild.voice_client.is_playing():
                 await asyncio.sleep(3)
             try:
-                yt = YouTube(musicdefaulturl)
-                audio_url = yt.streams.filter(only_audio=True).first().url
-                guild.voice_client.play(OriginalFFmpegPCMAudio(audio_url, **ffmpeg_options))
+                player = await YTDLSource.from_url(musicdefaulturl, loop=client.loop)
+                audiotoplay = YTDLSource(player, data=player.data, volume=volume)
+                guild.voice_client.play(audiotoplay)
             except Exception as e:
                 print(e)
                 try:
