@@ -10,7 +10,6 @@ import subprocess
 import logging
 import asyncio
 import datetime
-from googleapiclient.discovery import build
 import yt_dlp
 
 #24時間音楽を流すときの音楽
@@ -25,7 +24,6 @@ channel_id = 1133599794250657872
 intents=discord.Intents.all()
 intents.typing = False
 client = discord.Client(intents=intents)
-youtubedataapi = build('youtube', 'v3', developerKey='AIzaSyCIiSbM5QWgxJC4KqKCcR3_jPc0ISIObng')
 log = logging.getLogger(__name__)
 
 ytdl_format_options = {
@@ -53,52 +51,11 @@ yt_dlp.utils.bug_reports_message = lambda: ''
 ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 
 
-
-
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=1.0):
         super().__init__(source, volume)
 
         self.data = data
-
-        self.title = data.get('title')
-        yturl = data.get('webpage_url')
-        self.url = yturl
-        ytid = yturl.split('/')
-        ytid = ytid[-1]
-        ytid = yturl.split('=')
-        ytid = ytid[-1]
-        youtubeapiresponse = youtubedataapi.videos().list(
-            part='snippet',
-            id=ytid
-        ).execute()
-        self.thumbnail = youtubeapiresponse['items'][0]['snippet']['thumbnails']['high']['url']
-        published_at_utc = youtubeapiresponse['items'][0]['snippet']['publishedAt']
-        published_datetime_utc = datetime.datetime.strptime(published_at_utc, "%Y-%m-%dT%H:%M:%SZ")
-        published_datetime_utc = to_timestamp(published_datetime_utc, 'F')
-        self.upload_date = published_datetime_utc
-        yt_channel_id = youtubeapiresponse['items'][0]['snippet']['channelId']
-        self.channel_id = yt_channel_id
-        yt_channel = get_channel_info(yt_channel_id)
-        self.channel_name = yt_channel[0]
-        self.channel_icon = yt_channel[1]
-        duration_seconds = data.get('duration')
-        duration_seconds = int(duration_seconds)
-        duration_minutes = duration_seconds // 60
-        duration_hours = duration_minutes // 60
-        remaining_minutes = duration_minutes % 60
-        remaining_seconds = duration_seconds % 60
-        dh = str(duration_hours)
-        dm = str(remaining_minutes)
-        ds = str(remaining_seconds)
-        durationresult = dh
-        if len(dm) == 1:
-            dm = f'0{dm}'
-        durationresult = f'{durationresult}:{dm}'
-        if len(ds) == 1:
-            ds = f'0{ds}'
-        self.duration = f'{durationresult}:{ds}'
-        self.seconds = duration_seconds
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=True):
