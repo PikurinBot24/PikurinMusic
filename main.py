@@ -10,8 +10,7 @@ import subprocess
 import logging
 import asyncio
 from googleapiclient.discovery import build
-from pytube import YouTube
-from pytube import Search
+import yt_dlp
 
 #24時間音楽を流すときの音楽
 musicdefaulturl = 'https://youtube.com/watch?v=SHpQ77wDfYg'
