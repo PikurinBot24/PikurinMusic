@@ -13,7 +13,7 @@ import datetime
 import yt_dlp
 
 #24時間音楽を流すときの音楽
-musicdefaulturl = 'https://youtube.com/watch?v=SHpQ77wDfYg'
+musicdefaulturl = 'https://www.youtube.com/watch?v=e51dROrMSl8'
 #DiscordBotのトークン
 TOKEN = 'MTEzMzU5NDMxNTgxMDE0NDMwNg.GpDXeN.YQSvyDFU7I4wwXCXRdbwtLJp80N_nDXNXlxOZ8'
 #チャンネルID
