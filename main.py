@@ -217,13 +217,13 @@ async def on_ready():
 
 
 async def play_music(channel, guild, botlog):
-    if guild.voice_client:
-        await guild.voice_client.disconnect()
-        await asyncio.sleep(2)
-    await channel.connect()
-    await guild.change_voice_state(channel=guild.voice_client.channel, self_deaf=True)
-
     try:
+        if guild.voice_client:
+            await guild.voice_client.disconnect()
+            await asyncio.sleep(2)
+        await channel.connect()
+        await guild.change_voice_state(channel=guild.voice_client.channel, self_deaf=True)
+
         player = await YTDLSource.from_url(musicdefaulturl, loop=client.loop)
         seconds = player.seconds
         audiotoplay = YTDLSource(player, data=player.data, volume=1.0)
