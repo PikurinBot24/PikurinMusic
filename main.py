@@ -27,6 +27,7 @@ client = discord.Client(intents=intents)
 log = logging.getLogger(__name__)
 
 ytdl_format_options = {
+    'cookiefile': './cookies.txt', 
     'format': 'm4a/bestaudio/best',
     'postprocessors': [{
         'key': 'FFmpegExtractAudio',
