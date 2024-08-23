@@ -12,6 +12,7 @@ import asyncio
 import datetime
 import yt_dlp
 import os
+import sys
 
 #24時間音楽を流すときの音楽
 musicdefaulturl = 'https://www.youtube.com/watch?v=e51dROrMSl8'
