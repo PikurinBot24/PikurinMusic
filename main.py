@@ -236,9 +236,11 @@ async def play_music(channel, guild, botlog):
     except Exception as e:
         print(e)
         try:
-            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\n```\n{e}\n```\n再起動します。')
+            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\n```\n{e}\n```\n')
         except:
-            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーログは長すぎて送信できません。\n再起動します。')
+            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーログは長すぎて送信できません。')
+        await asyncio.sleep(60)
+        await botlog.channel.send('再起動します。')
         os.execv(sys.executable, ['python'] + sys.argv)
     
 
