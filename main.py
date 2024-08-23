@@ -11,6 +11,7 @@ import logging
 import asyncio
 import datetime
 import yt_dlp
+import os
 
 #24時間音楽を流すときの音楽
 musicdefaulturl = 'https://www.youtube.com/watch?v=e51dROrMSl8'
@@ -232,10 +233,10 @@ async def play_music(channel, guild, botlog):
     except Exception as e:
         print(e)
         try:
-            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\n```\n{e}\n```')
+            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\n```\n{e}\n```\n再起動します。')
         except:
-            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーログは長すぎて送信できません。')
-        return
+            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーログは長すぎて送信できません。\n再起動します。')
+        os.execv(sys.executable, ['python'] + sys.argv)
     
 
     await asyncio.sleep(seconds)
