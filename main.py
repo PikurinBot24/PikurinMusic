@@ -238,7 +238,6 @@ async def play_music(channel, guild, botlog):
             await botlog.edit(content=f'おっと！何かエラーが発生したようです。\n```\n{e}\n```\n')
         except:
             await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーログは長すぎて送信できません。')
-        await asyncio.sleep(60)
         await botlog.channel.send('再起動します。')
         os.execv(sys.executable, ['python'] + sys.argv)
     
@@ -258,7 +257,8 @@ async def play_music(channel, guild, botlog):
                     await botlog.edit(content=f'おっと！何かエラーが発生したようです。\n```\n{e}\n```')
                 except:
                     await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーログは長すぎて送信できません。')
-            await asyncio.sleep(seconds)
+            await botlog.channel.send('再起動します。')
+            os.execv(sys.executable, ['python'] + sys.argv)
 
 
 
