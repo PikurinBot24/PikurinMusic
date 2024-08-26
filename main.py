@@ -211,10 +211,7 @@ async def on_ready():
     channel = client.get_channel(channel_id)
     guild = channel.guild
 
-    if guild.voice_client:
-        await guild.voice_client.disconnect()
-        await asyncio.sleep(2)
-    await channel.connect()
+
     await asyncio.sleep(2)
     await play_music_in_voice_channels(channel, guild, botlog)
 
@@ -235,9 +232,9 @@ async def play_music(channel, guild, botlog):
     except Exception as e:
         print(e)
         try:
-            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\n```\n{e}\n```\n')
+            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：ボイスチャンネルに接続して音楽を再生するとき\n```\n{e}\n```\n')
         except:
-            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーログは長すぎて送信できません。')
+            await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：ボイスチャンネルに接続して音楽を再生するとき\nエラーログは長すぎて送信できません。')
         await botlog.channel.send('再起動します。')
         os.execv(sys.executable, ['python'] + sys.argv)
     
@@ -254,9 +251,9 @@ async def play_music(channel, guild, botlog):
             except Exception as e:
                 print(e)
                 try:
-                    await botlog.edit(content=f'おっと！何かエラーが発生したようです。\n```\n{e}\n```')
+                    await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：2回目以降で音楽を再生するとき\n```\n{e}\n```')
                 except:
-                    await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーログは長すぎて送信できません。')
+                    await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：2回目以降で音楽を再生するとき\nエラーログは長すぎて送信できません。')
             await botlog.channel.send('再起動します。')
             os.execv(sys.executable, ['python'] + sys.argv)
 
