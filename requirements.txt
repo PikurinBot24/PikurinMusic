@@ -1,5 +1,4 @@
 discord.py
-uvicorn
 flask
 yt_dlp
 PyNaCl
