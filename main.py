@@ -17,7 +17,7 @@ import sys
 #24時間音楽を流すときの音楽
 musicdefaulturl = 'https://www.youtube.com/watch?v=e51dROrMSl8'
 #DiscordBotのトークン
-TOKEN = 'MTEzMzU5NDMxNTgxMDE0NDMwNg.GF1lCs.W9tYiZUQ5bDBB0VuEHpLn7p6OCgj6qanpFAilE'
+TOKEN = 'MTEzMzU5NDMxNTgxMDE0NDMwNg.G4nUvn.7tSE_W73AgsySEwpwzWzvQDNfJvwmWDd3DUWw0'
 #チャンネルID
 channel_id = 1133599794250657872
 
@@ -51,7 +51,7 @@ ffmpeg_options = {
     'before_options':
     '-vn -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 20'
 }
-yt_dlp.utils.bug_reports_message = lambda: ''
+yt_dlp.utils.bug_reports_message = lambda **kwargs: ''
 ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 
 
