@@ -17,7 +17,7 @@ import sys
 #24時間音楽を流すときの音楽
 musicdefaulturl = 'https://www.youtube.com/watch?v=e51dROrMSl8'
 #DiscordBotのトークン
-TOKEN = 'MTEzMzU5NDMxNTgxMDE0NDMwNg.G4nUvn.7tSE_W73AgsySEwpwzWzvQDNfJvwmWDd3DUWw0'
+TOKEN = 'MTEzMzU5NDMxNTgxMDE0NDMwNg.GluQqL.yKplEuGhIRzyaTIpG8XXHfPn_qcGoScEUtXXtQ'
 #チャンネルID
 channel_id = 1133599794250657872
 
