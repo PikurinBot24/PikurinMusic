@@ -60,6 +60,8 @@ async def play_music(channel, guild, botlog):
             await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：ボイスチャンネルに接続して音楽を再生するとき\n```\n{e}\n```\n')
         except:
             await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：ボイスチャンネルに接続して音楽を再生するとき\nエラーログは長すぎて送信できません。')
+        await botlog.channel.send('再起動します。')
+        os.execv(sys.executable, ['python'] + sys.argv)
     
     while True:
         if guild.voice_client:
@@ -73,7 +75,8 @@ async def play_music(channel, guild, botlog):
                     await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：2回目以降で音楽を再生するとき\n```\n{e}\n```')
                 except:
                     await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：2回目以降で音楽を再生するとき\nエラーログは長すぎて送信できません。')
-
+                await botlog.channel.send('再起動します。')
+                os.execv(sys.executable, ['python'] + sys.argv)
 
 
 
