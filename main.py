@@ -64,19 +64,19 @@ async def play_music(channel, guild, botlog):
         os.execv(sys.executable, ['python'] + sys.argv)
     
     while True:
-        if guild.voice_client:
-            while guild.voice_client.is_playing():
-                await asyncio.sleep(5)
-            try:
+        try:
+            if guild.voice_client:
+                while guild.voice_client.is_playing():
+                    await asyncio.sleep(5)
                 guild.voice_client.play(discord.FFmpegPCMAudio(audio_url, before_options="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"))
-            except Exception as e:
-                print(e)
-                try:
-                    await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：2回目以降で音楽を再生するとき\n```\n{e}\n```')
-                except:
-                    await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：2回目以降で音楽を再生するとき\nエラーログは長すぎて送信できません。')
-                await botlog.channel.send('再起動します。')
-                os.execv(sys.executable, ['python'] + sys.argv)
+        except Exception as e:
+            print(e)
+            try:
+                await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：2回目以降で音楽を再生するとき\n```\n{e}\n```')
+            except:
+                await botlog.edit(content=f'おっと！何かエラーが発生したようです。\nエラーのタイミング：2回目以降で音楽を再生するとき\nエラーログは長すぎて送信できません。')
+            await botlog.channel.send('再起動します。')
+            os.execv(sys.executable, ['python'] + sys.argv)
 
 
 
