@@ -6,7 +6,7 @@ import logging
 
 audio_url = "https://www.dropbox.com/scl/fi/djpoftpqp3a61mxbxf09g/nature_sound_ambient.mp3?rlkey=7med7l9l0p1uy57p05vdpr2mb&st=d4c6qkyg&dl=1"
 TOKEN = 'MTEzMzU5NDMxNTgxMDE0NDMwNg.GgZ2Jw.0_WSBPGvof3s5uH4g_fD3bYDrZaqHuZsOKAOTc'
-channel_id = 1277188290121961586
+channel_id = 1133599794250657872
 
 intents = discord.Intents.all()
 intents.typing = False
