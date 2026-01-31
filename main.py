@@ -3,9 +3,10 @@ import discord
 import asyncio
 import logging
 import os
+import aiohttp
 
-# GitHub Releases の音源
 AUDIO_URL = "https://github.com/PikurinBot24/PikurinMusic/releases/download/v1/audio.mp3"
+AUDIO_FILE = "audio.mp3"
 
 TOKEN = os.environ["DISCORD_TOKEN"]
 CHANNEL_ID = 1133599794250657872
@@ -18,16 +19,27 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 
-async def connect_voice(channel: discord.VoiceChannel) -> discord.VoiceClient:
-    """VC接続を保証する（切断時は再接続）"""
+# ---------- 音源DL（初回のみ） ----------
+async def download_audio():
+    if os.path.exists(AUDIO_FILE):
+        return
+
+    log.info("音源をダウンロード中...")
+    async with aiohttp.ClientSession() as session:
+        async with session.get(AUDIO_URL) as resp:
+            with open(AUDIO_FILE, "wb") as f:
+                f.write(await resp.read())
+    log.info("音源ダウンロード完了")
+
+
+# ---------- VC接続保証 ----------
+async def ensure_voice(channel: discord.VoiceChannel):
     vc = channel.guild.voice_client
 
     if vc is None:
-        log.info("VCに新規接続します")
         return await channel.connect(self_deaf=True)
 
     if not vc.is_connected():
-        log.warning("VCが切断されていたため再接続します")
         try:
             await vc.disconnect(force=True)
         except Exception:
@@ -37,69 +49,58 @@ async def connect_voice(channel: discord.VoiceChannel) -> discord.VoiceClient:
     return vc
 
 
-def create_source():
-    """FFmpeg音源を生成"""
-    return discord.FFmpegPCMAudio(
-        AUDIO_URL,
-        before_options=(
-            "-reconnect 1 "
-            "-reconnect_streamed 1 "
-            "-reconnect_delay_max 5"
-        ),
+# ---------- 再生ループ（after方式） ----------
+def start_play(vc: discord.VoiceClient):
+    if vc.is_playing():
+        return
+
+    source = discord.FFmpegPCMAudio(
+        AUDIO_FILE,
         options="-vn"
     )
 
+    def after(err):
+        if err:
+            log.error(f"再生エラー: {err}")
 
-async def play_loop(channel: discord.VoiceChannel):
-    await client.wait_until_ready()
+        # VCが生きていれば再開
+        if vc.is_connected():
+            asyncio.run_coroutine_threadsafe(
+                delayed_restart(vc), client.loop
+            )
 
-    last_connected = False
-
-    while not client.is_closed():
-        try:
-            vc = await connect_voice(channel)
-
-            # 接続状態チェック
-            if vc is None or not vc.is_connected():
-                last_connected = False
-                await asyncio.sleep(2)
-                continue
-
-            # 🔴 再接続を検知したら必ず再生し直す
-            if not last_connected:
-                log.info("VC再接続を検知。再生を初期化します")
-                if vc.is_playing() or vc.is_paused():
-                    vc.stop()
-
-                vc.play(create_source())
-                last_connected = True
-
-            # 再生が止まっていたら再開
-            if not vc.is_playing():
-                log.info("再生が停止していたため再開します")
-                vc.play(create_source())
-
-            await asyncio.sleep(1)
-
-        except Exception:
-            log.exception("play_loop error")
-            last_connected = False
-            await asyncio.sleep(5)
+    vc.play(source, after=after)
+    log.info("音声再生開始")
 
 
+async def delayed_restart(vc):
+    await asyncio.sleep(2)
+    start_play(vc)
+
+
+# ---------- 起動 ----------
 @client.event
 async def on_ready():
-    print("ログインしました")
+    log.info("ログインしました")
     await client.change_presence(
         activity=discord.Game(name="Pikurinサーバー専用BOT")
     )
 
+    await download_audio()
+
     channel = client.get_channel(CHANNEL_ID)
     if channel is None:
-        log.error("指定されたVCが見つかりません")
+        log.error("VCが見つかりません")
         return
 
-    client.loop.create_task(play_loop(channel))
+    while True:
+        try:
+            vc = await ensure_voice(channel)
+            start_play(vc)
+            await asyncio.sleep(10)
+        except Exception:
+            log.exception("メインループエラー")
+            await asyncio.sleep(5)
 
 
 keep_alive()
