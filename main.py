@@ -29,27 +29,29 @@ async def download_audio():
         async with session.get(AUDIO_URL) as resp:
             with open(AUDIO_FILE, "wb") as f:
                 f.write(await resp.read())
+
     log.info("音源ダウンロード完了")
 
 
-# ---------- VC接続保証 ----------
+# ---------- VC接続保証（安定版） ----------
 async def ensure_voice(channel: discord.VoiceChannel):
     vc = channel.guild.voice_client
 
-    if vc is None:
-        return await channel.connect(self_deaf=True)
+    if vc and vc.is_connected():
+        return vc
 
-    if not vc.is_connected():
-        try:
+    try:
+        if vc:
             await vc.disconnect(force=True)
-        except Exception:
-            pass
-        return await channel.connect(self_deaf=True)
+    except Exception:
+        pass
 
-    return vc
+    await asyncio.sleep(2)
+
+    return await channel.connect(self_deaf=True, reconnect=True)
 
 
-# ---------- 再生ループ（after方式） ----------
+# ---------- 再生 ----------
 def start_play(vc: discord.VoiceClient):
     if vc.is_playing():
         return
@@ -63,7 +65,6 @@ def start_play(vc: discord.VoiceClient):
         if err:
             log.error(f"再生エラー: {err}")
 
-        # VCが生きていれば再開
         if vc.is_connected():
             asyncio.run_coroutine_threadsafe(
                 delayed_restart(vc), client.loop
@@ -78,29 +79,41 @@ async def delayed_restart(vc):
     start_play(vc)
 
 
-# ---------- 起動 ----------
-@client.event
-async def on_ready():
-    log.info("ログインしました")
-    await client.change_presence(
-        activity=discord.Game(name="Pikurinサーバー専用BOT")
-    )
+# ---------- メインループ ----------
+async def play_loop(channel):
+    await client.wait_until_ready()
+
+    # Discord起動安定待機
+    await asyncio.sleep(5)
 
     await download_audio()
-
-    channel = client.get_channel(CHANNEL_ID)
-    if channel is None:
-        log.error("VCが見つかりません")
-        return
 
     while True:
         try:
             vc = await ensure_voice(channel)
             start_play(vc)
             await asyncio.sleep(10)
+
         except Exception:
             log.exception("メインループエラー")
             await asyncio.sleep(5)
+
+
+# ---------- 起動 ----------
+@client.event
+async def on_ready():
+    log.info("ログインしました")
+
+    await client.change_presence(
+        activity=discord.Game(name="Pikurinサーバー専用BOT")
+    )
+
+    channel = client.get_channel(CHANNEL_ID)
+    if channel is None:
+        log.error("VCが見つかりません")
+        return
+
+    client.loop.create_task(play_loop(channel))
 
 
 keep_alive()
