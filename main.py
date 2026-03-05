@@ -33,7 +33,7 @@ async def download_audio():
     log.info("音源ダウンロード完了")
 
 
-# ---------- VC接続保証（安定版） ----------
+# ---------- VC接続保証 ----------
 async def ensure_voice(channel: discord.VoiceChannel):
     vc = channel.guild.voice_client
 
@@ -58,25 +58,12 @@ def start_play(vc: discord.VoiceClient):
 
     source = discord.FFmpegPCMAudio(
         AUDIO_FILE,
+        before_options="-stream_loop -1",
         options="-vn"
     )
 
-    def after(err):
-        if err:
-            log.error(f"再生エラー: {err}")
-
-        if vc.is_connected():
-            asyncio.run_coroutine_threadsafe(
-                delayed_restart(vc), client.loop
-            )
-
-    vc.play(source, after=after)
+    vc.play(source)
     log.info("音声再生開始")
-
-
-async def delayed_restart(vc):
-    await asyncio.sleep(2)
-    start_play(vc)
 
 
 # ---------- メインループ ----------
@@ -91,7 +78,10 @@ async def play_loop(channel):
     while True:
         try:
             vc = await ensure_voice(channel)
-            start_play(vc)
+
+            if not vc.is_playing():
+                start_play(vc)
+
             await asyncio.sleep(10)
 
         except Exception:
