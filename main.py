@@ -11,8 +11,8 @@ AUDIO_FILE = "audio.mp3"
 TOKEN = os.environ["DISCORD_TOKEN"]
 CHANNEL_ID = 1277188290121961586
 
-intents = discord.Intents.all()
-intents.typing = False
+intents = discord.Intents.default()
+intents.voice_states = True
 client = discord.Client(intents=intents)
 
 logging.basicConfig(level=logging.INFO)
@@ -48,7 +48,8 @@ async def ensure_voice(channel: discord.VoiceChannel):
 
     await asyncio.sleep(2)
 
-    return await channel.connect(self_deaf=True, reconnect=True)
+    log.info("VC接続")
+    return await channel.connect(self_deaf=True)
 
 
 # ---------- 再生 ----------
@@ -59,7 +60,7 @@ def start_play(vc: discord.VoiceClient):
     source = discord.FFmpegPCMAudio(
         AUDIO_FILE,
         before_options="-stream_loop -1",
-        options="-vn"
+        options="-vn -loglevel quiet"
     )
 
     vc.play(source)
@@ -70,7 +71,6 @@ def start_play(vc: discord.VoiceClient):
 async def play_loop(channel):
     await client.wait_until_ready()
 
-    # Discord起動安定待機
     await asyncio.sleep(5)
 
     await download_audio()
@@ -82,11 +82,11 @@ async def play_loop(channel):
             if not vc.is_playing():
                 start_play(vc)
 
-            await asyncio.sleep(10)
+            await asyncio.sleep(30)
 
         except Exception:
             log.exception("メインループエラー")
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
 
 
 # ---------- 起動 ----------
