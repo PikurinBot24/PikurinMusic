@@ -33,11 +33,13 @@ async def download_audio():
     log.info("音源ダウンロード完了")
 
 
-# ---------- VC接続保証 ----------
+# ---------- VC接続保証 + 再生 ----------
 async def ensure_voice(channel: discord.VoiceChannel):
     vc = channel.guild.voice_client
 
     if vc and vc.is_connected():
+        if not vc.is_playing():
+            start_play(vc)  # 切断後も再生
         return vc
 
     try:
@@ -49,7 +51,9 @@ async def ensure_voice(channel: discord.VoiceChannel):
     await asyncio.sleep(2)
 
     log.info("VC接続")
-    return await channel.connect(self_deaf=True)
+    vc = await channel.connect(self_deaf=True)
+    start_play(vc)
+    return vc
 
 
 # ---------- 再生 ----------
@@ -67,12 +71,22 @@ def start_play(vc: discord.VoiceClient):
     log.info("音声再生開始")
 
 
+# ---------- 再接続監視 ----------
+@client.event
+async def on_voice_state_update(member, before, after):
+    if member.id != client.user.id:
+        return
+
+    vc = member.guild.voice_client
+    if vc and not vc.is_playing():
+        log.info("VC再接続後に再生開始")
+        start_play(vc)
+
+
 # ---------- メインループ ----------
 async def play_loop(channel):
     await client.wait_until_ready()
-
     await asyncio.sleep(5)
-
     await download_audio()
 
     while True:
@@ -81,6 +95,11 @@ async def play_loop(channel):
 
             if not vc.is_playing():
                 start_play(vc)
+
+            # 接続が切れた場合も自動補正
+            if not vc.is_connected():
+                log.warning("VC切断検知 → 再接続")
+                vc = await ensure_voice(channel)
 
             await asyncio.sleep(30)
 
@@ -93,10 +112,7 @@ async def play_loop(channel):
 @client.event
 async def on_ready():
     log.info("ログインしました")
-
-    await client.change_presence(
-        activity=discord.Game(name="Pikurinサーバー専用BOT")
-    )
+    await client.change_presence(activity=discord.Game(name="Pikurinサーバー専用BOT"))
 
     channel = client.get_channel(CHANNEL_ID)
     if channel is None:
