@@ -52,6 +52,10 @@ async def download_audio():
 
 def start_play(vc: discord.VoiceClient):
 
+    if not vc.is_connected():
+        log.warning("VC未接続のため再生をスキップ")
+        return
+
     if vc.is_playing():
         return
 
@@ -74,6 +78,7 @@ async def ensure_voice(channel):
 
     vc = channel.guild.voice_client
 
+    # すでに接続済み
     if vc and vc.is_connected():
 
         if not vc.is_playing():
@@ -82,38 +87,44 @@ async def ensure_voice(channel):
 
         return vc
 
+    # 古い接続を破棄
     try:
         if vc:
             await vc.disconnect(force=True)
-    except:
+    except Exception:
         pass
 
     await asyncio.sleep(2)
 
     log.info("VC接続")
 
+    # connect() 完了まで待つ
     vc = await channel.connect(self_deaf=True)
 
+    log.info("VC接続完了")
+
+    # 接続完了後に再生
     start_play(vc)
 
     return vc
 
 
 # ----------------------------
-# 再接続検知
+# VC状態変化
 # ----------------------------
 
 @client.event
 async def on_voice_state_update(member, before, after):
 
+    if not client.user:
+        return
+
     if member.id != client.user.id:
         return
 
-    vc = member.guild.voice_client
-
-    if vc and not vc.is_playing():
-        log.info("VC状態変化 → 再生再開")
-        start_play(vc)
+    # ここでは再生しない
+    # connect() の途中でもこのイベントが発生するため
+    log.info("VC状態変化を検知")
 
 
 # ----------------------------
@@ -134,12 +145,14 @@ async def play_loop(channel):
 
             vc = await ensure_voice(channel)
 
-            if not vc.is_playing():
+            # 念のため再生状態を確認
+            if vc.is_connected() and not vc.is_playing():
                 start_play(vc)
 
+            # VC切断確認
             if not vc.is_connected():
                 log.warning("VC切断検知 → 再接続")
-                vc = await ensure_voice(channel)
+                await ensure_voice(channel)
 
             await asyncio.sleep(30)
 
@@ -169,7 +182,10 @@ async def on_ready():
         log.error("VCが見つかりません")
         return
 
-    client.loop.create_task(play_loop(channel))
+    # 二重起動防止
+    if not hasattr(client, "_play_loop_started"):
+        client._play_loop_started = True
+        client.loop.create_task(play_loop(channel))
 
 
 keep_alive()
